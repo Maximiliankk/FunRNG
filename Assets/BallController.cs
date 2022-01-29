@@ -8,11 +8,12 @@ public class BallController : MonoBehaviour
     public Gamelogic logic;
 
     public List<AudioClip> clips;
+    int sfxIndex;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        sfxIndex = UnityEngine.Random.Range(0, clips.Count);
     }
 
     // Update is called once per frame
@@ -26,7 +27,7 @@ public class BallController : MonoBehaviour
         //if(collision.collider.gameObject == spinner)
         {
             // play a sound effect
-            AudioSource.PlayClipAtPoint(clips[UnityEngine.Random.Range(0, clips.Count)], this.transform.position);
+            AudioSource.PlayClipAtPoint(clips[sfxIndex], this.transform.position);
         }
     }
 }
