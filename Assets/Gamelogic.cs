@@ -14,13 +14,12 @@ public class Gamelogic : MonoBehaviour
     List<GameObject> balls = new List<GameObject>();
     public GameObject spinButtonBkg, spinButton;
     public GameObject quitButtonBkg, quitButton;
-    public GameObject resetButton;
+    public GameObject resetButtonBkg, resetButton;
     public GameObject togglesParent;
     public GameObject togglePrefab;
+    public GameObject ballCountRoot;
     public UnityEngine.UI.Slider ballCountSlider;
     public UnityEngine.UI.Text ballCountText;
-    bool happensOnce = true;
-    bool spin = false;
     int divides = 2;
     Vector3 ballStartPos;
     List<string> thelist = new List<string>();
@@ -31,6 +30,7 @@ public class Gamelogic : MonoBehaviour
     {
         SliderUpdate();
         resetButton.SetActive(false);
+        resetButtonBkg.SetActive(false);
 
         // read in the text file list
         {
@@ -109,11 +109,9 @@ public class Gamelogic : MonoBehaviour
         }
     }
 
-    private void InitSpin()
+    public void InitBalls()
     {
-        UpdateSpinner();
-
-        foreach(var b in balls)
+        foreach (var b in balls)
         {
             Destroy(b);
         }
@@ -121,18 +119,22 @@ public class Gamelogic : MonoBehaviour
         for (int i = 0; i < (int)ballCountSlider.value; ++i)
         {
             balls.Add(GameObject.Instantiate(ball));
-            balls[i].transform.position = new Vector3(balls[i].transform.position.x + i*2, balls[i].transform.position.y, balls[i].transform.position.z);
-
-            // set ball x and z to zero
-            balls[i].transform.position = new Vector3(0, ball.transform.position.y, 0);
-            //ballStartPos = ball.transform.position;
+            balls[i].transform.position = new Vector3(balls[i].transform.position.x + i * 2, balls[i].transform.position.y, balls[i].transform.position.z);
 
             balls[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
             balls[i].GetComponent<Renderer>().material.color = GetColor();
         }
+    }
+
+    private void InitSpin()
+    {
+        UpdateSpinner();
+
+        InitBalls();
 
         spinButtonBkg.GetComponent<UnityEngine.UI.Image>().color = GetColor();
         quitButtonBkg.GetComponent<UnityEngine.UI.Image>().color = GetColor();
+        resetButtonBkg.GetComponent<UnityEngine.UI.Image>().color = GetColor();
         spinner.GetComponent<Renderer>().material.color = GetColor();
         Camera.main.backgroundColor = GetColor();
     }
@@ -151,7 +153,9 @@ public class Gamelogic : MonoBehaviour
         spinButton.SetActive(true);
         spinButtonBkg.SetActive(true);
         resetButton.SetActive(false);
-        //ball.transform.position = ballStartPos;
+        resetButtonBkg.SetActive(false);
+        ballCountRoot.SetActive(true);
+        togglesParent.SetActive(true);
         spinner.GetComponent<Rigidbody>().Sleep();
         InitSpin();
     }
@@ -166,6 +170,7 @@ public class Gamelogic : MonoBehaviour
     {
         spinButton.SetActive(false);
         spinButtonBkg.SetActive(false);
+        ballCountRoot.SetActive(false);
 
         List<Vector3> startpos = new List<Vector3>();
         List<Vector3> targetpos = new List<Vector3>();
@@ -215,14 +220,15 @@ public class Gamelogic : MonoBehaviour
         {
             balls[i].GetComponent<Rigidbody>().constraints = RigidbodyConstraints.None;
         }
-        spin = true;
 
         resetButton.SetActive(true);
+        resetButtonBkg.SetActive(true);
     }
 
     public void SliderUpdate()
     {
         ballCountText.text = ballCountSlider.value.ToString();
+        InitBalls();
     }
 
     // Update is called once per frame
