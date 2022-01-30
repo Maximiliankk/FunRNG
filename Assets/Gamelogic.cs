@@ -20,6 +20,8 @@ public class Gamelogic : MonoBehaviour
     public GameObject ballCountRoot;
     public UnityEngine.UI.Slider ballCountSlider;
     public UnityEngine.UI.Text ballCountText;
+    public GameObject column, ground;
+    public GameObject sunlight;
     int divides = 2;
     Vector3 ballStartPos;
     List<string> thelist = new List<string>();
@@ -29,8 +31,6 @@ public class Gamelogic : MonoBehaviour
     void Start()
     {
         SliderUpdate();
-        resetButton.SetActive(false);
-        resetButtonBkg.SetActive(false);
 
         // read in the text file list
         {
@@ -52,7 +52,7 @@ public class Gamelogic : MonoBehaviour
             sr.Close();
         }
 
-        InitSpin();
+        ResetGame();
     }
 
     private void UpdateSpinner(bool val = false)
@@ -136,7 +136,14 @@ public class Gamelogic : MonoBehaviour
         quitButtonBkg.GetComponent<UnityEngine.UI.Image>().color = GetColor();
         resetButtonBkg.GetComponent<UnityEngine.UI.Image>().color = GetColor();
         spinner.GetComponent<Renderer>().material.color = GetColor();
-        Camera.main.backgroundColor = GetColor();
+        column.GetComponent<Renderer>().material.color = GetColor();
+        ground.GetComponent<Renderer>().material.color = GetColor();
+        ground.transform.position = new Vector3(ground.transform.position.x, UnityEngine.Random.Range(-4.0f, -60.0f), ground.transform.position.z);
+        sunlight.transform.rotation = UnityEngine.Random.rotation;
+        if(sunlight.transform.eulerAngles.y > 0)
+        {
+            sunlight.transform.eulerAngles = new Vector3(sunlight.transform.eulerAngles.x, sunlight.transform.eulerAngles.y * -1, sunlight.transform.eulerAngles.z);
+        }
     }
 
     private Color GetColor()
@@ -171,6 +178,7 @@ public class Gamelogic : MonoBehaviour
         spinButton.SetActive(false);
         spinButtonBkg.SetActive(false);
         ballCountRoot.SetActive(false);
+        togglesParent.SetActive(false);
 
         List<Vector3> startpos = new List<Vector3>();
         List<Vector3> targetpos = new List<Vector3>();
@@ -207,7 +215,7 @@ public class Gamelogic : MonoBehaviour
             balls[i].transform.position = targetpos[i];
         }
 
-        AudioSource.PlayClipAtPoint(clips[0], this.transform.position);
+        AudioSource.PlayClipAtPoint(clips[0], this.transform.position, 4);
 
         bool ccw = false;
         if (UnityEngine.Random.Range(0, 2) == 1)

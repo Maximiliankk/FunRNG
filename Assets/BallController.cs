@@ -27,7 +27,7 @@ public class BallController : MonoBehaviour
         //if(collision.collider.gameObject == spinner)
         {
             // play a sound effect
-            AudioSource.PlayClipAtPoint(clips[sfxIndex], this.transform.position);
+            AudioSource.PlayClipAtPoint(clips[sfxIndex], this.transform.position, 4);
         }
     }
 }
