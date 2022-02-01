@@ -1,0 +1,6 @@
+RTS
+Card
+FPS
+MOBA
+Other
+Fighting

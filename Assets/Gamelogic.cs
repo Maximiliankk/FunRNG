@@ -22,9 +22,11 @@ public class Gamelogic : MonoBehaviour
     public UnityEngine.UI.Text ballCountText;
     public GameObject column, ground;
     public GameObject sunlight;
+    public UnityEngine.UI.Dropdown dropdown;
     int divides = 2;
     Vector3 ballStartPos;
     List<string> thelist = new List<string>();
+    List<GameObject> togObjs = new List<GameObject>();
     public List<AudioClip> clips;
 
     // Start is called before the first frame update
@@ -32,27 +34,58 @@ public class Gamelogic : MonoBehaviour
     {
         SliderUpdate();
 
-        // read in the text file list
+        string path = "Assets/lists";
+        var files = Directory.GetFiles(path);
+        List<string> flist = new List<string>();
+        foreach (var f in files)
         {
-            StreamReader sr = new StreamReader("Assets/mylist.txt");
-            string line;
-            // Read and display lines from the file until the end of
-            // the file is reached.
-            while ((line = sr.ReadLine()) != null)
+            if (f.Substring(f.Length - 5, 5) != ".meta")
             {
-                //Debug.Log(line);
-                thelist.Add(line);
-                var go = GameObject.Instantiate(togglePrefab, togglesParent.transform);
-                var rt = go.GetComponent<RectTransform>();
-                rt.position = new Vector3(rt.position.x, rt.position.y - thelist.Count * rt.rect.height, rt.position.z);
-                var ttxt = go.GetComponentInChildren<UnityEngine.UI.Text>().text = line;
-                var tog = go.GetComponentInChildren<UnityEngine.UI.Toggle>();
-                tog.onValueChanged.AddListener(UpdateSpinner);
+                flist.Add(f.Substring(path.Length + 1, f.Length - (path.Length + 1)));
             }
-            sr.Close();
         }
+        dropdown.ClearOptions();
+        dropdown.AddOptions(flist);
+
+        UpdateDropdown();
 
         ResetGame();
+    }
+
+    public void UpdateDropdown()
+    {
+        foreach(var o in togObjs)
+        {
+            Destroy(o);
+        }
+        thelist.Clear();
+        togObjs.Clear();
+
+        StreamReader sr = new StreamReader("Assets/lists/" + dropdown.options[dropdown.value].text);
+        string line;
+        // Read and display lines from the file until the end of
+        // the file is reached.
+        while ((line = sr.ReadLine()) != null)
+        {
+            //Debug.Log(line);
+            thelist.Add(line);
+            var go = GameObject.Instantiate(togglePrefab, togglesParent.transform);
+            togObjs.Add(go);
+            var rt = go.GetComponent<RectTransform>();
+            rt.position = new Vector3(rt.position.x, rt.position.y - thelist.Count * rt.rect.height, rt.position.z);
+            var ttxt = go.GetComponentInChildren<UnityEngine.UI.Text>().text = line;
+            var tog = go.GetComponentInChildren<UnityEngine.UI.Toggle>();
+            tog.onValueChanged.AddListener(UpdateSpinner);
+        }
+        sr.Close();
+
+        StartCoroutine(DelayUpdateSpinner());
+    }
+
+    IEnumerator DelayUpdateSpinner()
+    {
+        yield return new WaitForEndOfFrame();
+        UpdateSpinner();
     }
 
     private void UpdateSpinner(bool val = false)
@@ -140,10 +173,9 @@ public class Gamelogic : MonoBehaviour
         ground.GetComponent<Renderer>().material.color = GetColor();
         ground.transform.position = new Vector3(ground.transform.position.x, UnityEngine.Random.Range(-4.0f, -60.0f), ground.transform.position.z);
         sunlight.transform.rotation = UnityEngine.Random.rotation;
-        if(sunlight.transform.eulerAngles.y > 0)
-        {
-            sunlight.transform.eulerAngles = new Vector3(sunlight.transform.eulerAngles.x, sunlight.transform.eulerAngles.y * -1, sunlight.transform.eulerAngles.z);
-        }
+        do {
+            sunlight.transform.rotation = UnityEngine.Random.rotation;
+        } while (sunlight.transform.forward.y > -0.5f);
     }
 
     private Color GetColor()
@@ -163,6 +195,7 @@ public class Gamelogic : MonoBehaviour
         resetButtonBkg.SetActive(false);
         ballCountRoot.SetActive(true);
         togglesParent.SetActive(true);
+        dropdown.gameObject.SetActive(true);
         spinner.GetComponent<Rigidbody>().Sleep();
         InitSpin();
     }
@@ -175,6 +208,9 @@ public class Gamelogic : MonoBehaviour
 
     IEnumerator SpinCR()
     {
+        AudioSource.PlayClipAtPoint(clips[0], Camera.main.transform.position, 1);
+
+        dropdown.gameObject.SetActive(false);
         spinButton.SetActive(false);
         spinButtonBkg.SetActive(false);
         ballCountRoot.SetActive(false);
@@ -215,7 +251,6 @@ public class Gamelogic : MonoBehaviour
             balls[i].transform.position = targetpos[i];
         }
 
-        AudioSource.PlayClipAtPoint(clips[0], this.transform.position, 4);
 
         bool ccw = false;
         if (UnityEngine.Random.Range(0, 2) == 1)
