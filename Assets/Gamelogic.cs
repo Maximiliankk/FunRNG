@@ -23,6 +23,7 @@ public class Gamelogic : MonoBehaviour
     public GameObject column, ground;
     public GameObject sunlight;
     public UnityEngine.UI.Dropdown dropdown;
+    public UnityEngine.UI.Dropdown SpeedDropdown;
     int divides = 2;
     Vector3 ballStartPos;
     List<string> thelist = new List<string>();
@@ -196,6 +197,7 @@ public class Gamelogic : MonoBehaviour
         ballCountRoot.SetActive(true);
         togglesParent.SetActive(true);
         dropdown.gameObject.SetActive(true);
+        SpeedDropdown.gameObject.SetActive(true);
         spinner.GetComponent<Rigidbody>().Sleep();
         InitSpin();
     }
@@ -211,6 +213,7 @@ public class Gamelogic : MonoBehaviour
         AudioSource.PlayClipAtPoint(clips[0], Camera.main.transform.position, 1);
 
         dropdown.gameObject.SetActive(false);
+        SpeedDropdown.gameObject.SetActive(false);
         spinButton.SetActive(false);
         spinButtonBkg.SetActive(false);
         ballCountRoot.SetActive(false);
@@ -257,7 +260,21 @@ public class Gamelogic : MonoBehaviour
         {
             ccw = true;
         }
-        spinner.GetComponent<Rigidbody>().AddTorque((ccw ? Vector3.up : Vector3.down) * spinStrength);
+
+        float spinSpeedModifier = 0;
+        if(SpeedDropdown.value == 0)
+        {
+            spinSpeedModifier = 0.5f;
+        }
+        else if (SpeedDropdown.value == 1)
+        {
+            spinSpeedModifier = 0.75f;
+        }
+        else if (SpeedDropdown.value == 2)
+        {
+            spinSpeedModifier = 1f;
+        }
+        spinner.GetComponent<Rigidbody>().AddTorque((ccw ? Vector3.up : Vector3.down) * spinStrength * spinSpeedModifier);
 
         for (int i = 0; i < (int)ballCountSlider.value; ++i)
         {
