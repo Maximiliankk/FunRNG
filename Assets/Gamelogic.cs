@@ -29,10 +29,17 @@ public class Gamelogic : MonoBehaviour
     List<string> thelist = new List<string>();
     List<GameObject> togObjs = new List<GameObject>();
     public List<AudioClip> clips;
+    Vector3 camStartDir, camStartPos;
+    float zoomAmount = 0, camLowerLimit, camUpperLimit;
 
     // Start is called before the first frame update
     void Start()
     {
+        camStartDir = Camera.main.transform.forward;
+        camStartPos = Camera.main.transform.position;
+        camLowerLimit = (7f - camStartPos.y) / camStartDir.y;
+        camUpperLimit = (25f - camStartPos.y) / camStartDir.y;
+
         SliderUpdate();
 
         string path = "Assets/lists";
@@ -136,6 +143,9 @@ public class Gamelogic : MonoBehaviour
                 var go2 = GameObject.Instantiate(textParent, spinner.transform);
                 go2.transform.Rotate(0, rotateAmount * ((float)i + 0.5f), 0);
                 go2.GetComponentInChildren<UnityEngine.UI.Text>().text = findOns[i - 1];
+
+                // if the length of the string is greater than 21, then we want to make the font size smaller
+                go2.GetComponentInChildren<UnityEngine.UI.Text>().fontSize = (findOns[i - 1].Length > 20) ? 50 : 74;
             }
             var go3 = GameObject.Instantiate(textParent, spinner.transform);
             go3.transform.Rotate(0, rotateAmount * ((float)divides + 0.5f), 0);
@@ -294,6 +304,20 @@ public class Gamelogic : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float toOrigin = Vector3.Distance(Camera.main.transform.position, Vector3.zero);
+        float scrollspeed = toOrigin * 0.3f;
+        zoomAmount += Input.mouseScrollDelta.y * scrollspeed;
+        Camera.main.transform.position = camStartPos + camStartDir * zoomAmount;
 
+        if (Camera.main.transform.position.y < 7)
+        {
+            Camera.main.transform.position = camStartPos + camStartDir * camLowerLimit;
+            zoomAmount = camLowerLimit;
+        }
+        if (Camera.main.transform.position.y > 25)
+        {
+            Camera.main.transform.position = camStartPos + camStartDir * camUpperLimit;
+            zoomAmount = camUpperLimit;
+        }
     }
 }
